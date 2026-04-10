@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>iFont — Fuentes públicas</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#1251A3;--blue-mid:#1565C0;--blue-light:#2196F3;--blue-pale:#E3F2FD;
+  --teal:#007A6E;--teal-mid:#00897B;--teal-light:#4DB6AC;--teal-pale:#E0F2F1;
+  --bg:#F4F8FF;--surface:#fff;--text:#0D1B2A;--muted:#546E7A;--border:rgba(0,0,0,0.09);
+  --shadow:0 4px 20px rgba(18,81,163,0.12);--r:14px;--sidebar:360px;
+}
+body{font-family:'DM Sans',sans-serif;background:#0e3f80;color:var(--text);height:100dvh;overflow:hidden}
+#app{display:flex;height:100dvh;width:100%}
+
+/* SIDEBAR */
+#sidebar{width:var(--sidebar);flex-shrink:0;display:flex;flex-direction:column;background:var(--surface);border-right:1px solid var(--border);position:relative;overflow:hidden;z-index:10}
+
+/* HEADER */
+.hdr{background:linear-gradient(160deg,var(--blue) 0%,#0e3f80 100%);padding:16px 16px 14px;flex-shrink:0}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.logo{display:flex;align-items:center;gap:9px}
+.logo-mark{width:36px;height:36px;background:rgba(255,255,255,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.2)}
+.logo-text{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;color:#fff;letter-spacing:-0.5px}
+.logo-text em{color:#4DB6AC;font-style:normal}
+.hdr-pill{font-size:11px;font-weight:600;color:rgba(255,255,255,0.8);background:rgba(255,255,255,0.12);padding:5px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.15)}
+.search-wrap{display:flex;gap:8px}
+.search-wrap input{flex:1;background:rgba(255,255,255,0.13);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:9px 12px;color:#fff;font-size:13px;font-family:inherit;outline:none;transition:background 0.2s}
+.search-wrap input::placeholder{color:rgba(255,255,255,0.5)}
+.search-wrap input:focus{background:rgba(255,255,255,0.22)}
+.search-wrap button{background:var(--teal-mid);border:none;border-radius:10px;padding:9px 14px;color:#fff;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;transition:background 0.15s}
+.search-wrap button:hover{background:var(--teal)}
+
+/* TABS */
+.tabs{display:flex;background:#fff;border-bottom:1px solid var(--border);flex-shrink:0}
+.tab{flex:1;padding:11px 8px;border:none;background:none;font-family:inherit;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;border-bottom:2.5px solid transparent;transition:all 0.15s}
+.tab.active{color:var(--blue-mid);border-bottom-color:var(--blue-mid);font-weight:700}
+
+/* PANELS */
+.panel{display:none;flex:1;overflow:hidden;flex-direction:column}
+.panel.active{display:flex}
+
+/* LIST */
+.list-scroll{flex:1;overflow-y:auto;background:var(--bg);padding:12px}
+.list-scroll::-webkit-scrollbar{width:4px}
+.list-scroll::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.12);border-radius:2px}
+.sec-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;padding:8px 4px}
+.card{background:#fff;border-radius:var(--r);padding:13px;margin-bottom:8px;display:flex;gap:11px;align-items:flex-start;cursor:pointer;border:1px solid var(--border);transition:all 0.15s}
+.card:hover{box-shadow:var(--shadow);transform:translateY(-1px);border-color:rgba(21,101,192,0.2)}
+.card.selected{border-color:var(--blue-mid);box-shadow:0 0 0 2px rgba(21,101,192,0.12)}
+.card-ico{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.ico-ok{background:var(--teal-pale)}.ico-unk{background:#FFF8E1}.ico-brk{background:#FFEBEE}
+.card-body{flex:1;min-width:0}
+.card-name{font-size:14px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.card-meta{display:flex;gap:7px;align-items:center;margin-top:6px;flex-wrap:wrap}
+.dist{font-size:11px;font-weight:700;color:var(--teal-mid);background:var(--teal-pale);padding:2px 8px;border-radius:6px}
+.badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px}
+.b-ok{background:var(--teal-pale);color:var(--teal)}.b-unk{background:#FFF8E1;color:#E65100}.b-brk{background:#FFEBEE;color:#C62828}
+.card-arr{color:var(--muted);align-self:center;font-size:18px;flex-shrink:0}
+
+/* EMPTY */
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--muted);font-size:14px;padding:40px;text-align:center}
+.empty-ico{font-size:48px;opacity:0.35}
+
+/* FILTERS */
+.flt-scroll{flex:1;overflow-y:auto;padding:16px;background:var(--bg)}
+.flt-card{background:#fff;border-radius:var(--r);padding:16px 18px;margin-bottom:12px;border:1px solid var(--border)}
+.flt-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.flt-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;font-size:13px;border-bottom:1px solid var(--border)}
+.flt-row:last-child{border-bottom:none}
+.flt-row input[type=checkbox]{accent-color:var(--blue-mid);width:17px;height:17px;cursor:pointer}
+.radius-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:6px}
+.radius-val{color:var(--blue-mid);font-weight:700}
+input[type=range]{accent-color:var(--blue-mid);width:100%;margin:8px 0;cursor:pointer}
+.apply-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--blue-mid),var(--teal-mid));border:none;border-radius:var(--r);font-family:inherit;font-size:14px;font-weight:700;color:#fff;cursor:pointer;margin-top:4px;transition:opacity 0.15s}
+.apply-btn:hover{opacity:0.9}
+
+/* DETAIL PANEL */
+#panel-detail{background:var(--bg)}
+.detail-back{display:flex;align-items:center;gap:6px;padding:13px 16px;font-size:13px;font-weight:600;color:var(--blue-mid);cursor:pointer;background:#fff;border-bottom:1px solid var(--border);flex-shrink:0;transition:color 0.15s}
+.detail-back:hover{color:var(--blue)}
+.detail-scroll{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:11px}
+.det-hero{background:linear-gradient(135deg,var(--blue),#0e3f80);border-radius:var(--r);padding:18px;color:#fff}
+.det-hero-name{font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;line-height:1.3;margin-bottom:4px}
+.det-hero-coords{font-size:11px;opacity:0.65;font-family:monospace;margin-bottom:12px}
+.det-hero-badges{display:flex;gap:8px;flex-wrap:wrap}
+.det-hero-badge{padding:4px 11px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);color:#fff}
+.det-card{background:#fff;border-radius:var(--r);border:1px solid var(--border);overflow:hidden}
+.det-row{display:flex;justify-content:space-between;align-items:center;padding:11px 16px;border-bottom:1px solid var(--border);font-size:13px}
+.det-row:last-child{border-bottom:none}
+.det-lbl{color:var(--muted)}
+.det-val{font-weight:700;color:var(--text);text-align:right;max-width:58%}
+.det-actions{display:flex;gap:10px}
+.act-btn{flex:1;padding:13px;border-radius:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all 0.15s;border:1.5px solid var(--border)}
+.act-primary{background:linear-gradient(135deg,var(--blue-mid),var(--blue-light));color:#fff;border-color:transparent}
+.act-primary:hover{opacity:0.9}
+.act-secondary{background:#fff;color:var(--text)}
+.act-secondary:hover{background:var(--bg)}
+
+/* MAP AREA */
+#map-area{flex:1;display:flex;flex-direction:column;position:relative;min-width:0}
+#map{flex:1;z-index:1}
+.map-bar{background:#fff;padding:10px 16px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;font-size:13px}
+.map-status{color:var(--muted)}
+.map-count{font-weight:700;color:var(--teal-mid)}
+.locate-btn{position:absolute;top:12px;right:12px;z-index:999;width:42px;height:42px;background:#fff;border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--shadow);transition:transform 0.15s}
+.locate-btn:hover{transform:scale(1.05)}
+
+/* LOADING */
+.loading{position:fixed;inset:0;background:rgba(244,248,255,0.97);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:16px}
+.loading.hidden{display:none}
+.spinner{width:42px;height:42px;border:3px solid rgba(18,81,163,0.15);border-top-color:var(--blue-mid);border-radius:50%;animation:spin 0.75s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-lbl{font-size:14px;color:var(--muted);font-weight:500}
+.loading-app{font-family:'Space Grotesk',sans-serif;font-size:30px;font-weight:700;color:var(--blue);letter-spacing:-0.5px}
+.loading-app em{color:var(--teal-mid);font-style:normal}
+
+/* LEAFLET POPUP */
+.leaflet-popup-content-wrapper{border-radius:12px!important;box-shadow:var(--shadow)!important;border:1px solid var(--border)!important;padding:0!important}
+.leaflet-popup-content{margin:0!important;padding:12px 16px!important;font-family:'DM Sans',sans-serif!important;min-width:160px}
+.popup-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px}
+.popup-dist{font-size:12px;color:var(--teal-mid);font-weight:600;margin-bottom:7px}
+.popup-btn{display:block;width:100%;padding:7px;background:var(--blue-mid);border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;text-align:center}
+
+/* MOBILE SHEET */
+.mob-overlay{position:fixed;inset:0;background:rgba(13,27,42,0.45);z-index:500;display:none;align-items:flex-end;backdrop-filter:blur(2px)}
+.mob-overlay.open{display:flex}
+.mob-sheet{background:#fff;border-radius:22px 22px 0 0;width:100%;max-height:78vh;overflow-y:auto;animation:slideUp 0.28s cubic-bezier(0.32,0.72,0,1)}
+@keyframes slideUp{from{transform:translateY(60px);opacity:0}to{transform:translateY(0);opacity:1}}
+.mob-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:14px auto 18px}
+.mob-sheet-hdr{padding:0 20px 16px;border-bottom:1px solid var(--border)}
+.mob-sh-name{font-family:'Space Grotesk',sans-serif;font-size:19px;font-weight:700;color:var(--text);line-height:1.2}
+.mob-sh-coords{font-size:12px;color:var(--muted);margin-top:4px;font-family:monospace}
+.mob-sh-badges{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.mob-sh-badge{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700}
+.mob-sheet-body{padding:16px 20px}
+.mob-det-row{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border);font-size:13px}
+.mob-det-row:last-child{border-bottom:none}
+.mob-det-lbl{color:var(--muted)}
+.mob-det-val{font-weight:700}
+.mob-sheet-actions{padding:4px 20px 20px;display:flex;gap:10px}
+
+/* ═══════════════════════════════════
+   MOBILE LAYOUT (≤767px)
+═══════════════════════════════════ */
+@media(max-width:767px){
+  body{background:var(--surface)}
+  #app{flex-direction:column;max-width:100%}
+  #sidebar{width:100%;border-right:none;flex:1}
+  #map-area{display:none!important}
+  /* mobile has an extra Map tab panel */
+  #panel-map-mob{position:relative}
+  .locate-btn-mob{position:absolute;bottom:56px;top:auto;right:12px}
+  .map-bar-mob{background:#fff;padding:8px 14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:12px}
+}
+@media(min-width:768px){
+  #tab-map-btn{display:none!important}
+  #panel-map-mob{display:none!important}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="loading" id="loading">
+    <div class="loading-app">i<em>Font</em></div>
+    <div class="spinner"></div>
+    <div class="loading-lbl" id="loading-txt">Buscando tu ubicación…</div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div class="hdr">
+      <div class="hdr-top">
+        <div class="logo">
+          <div class="logo-mark">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4DB6AC" stroke-width="2.5" stroke-linecap="round"><path d="M12 2C8 2 5 5 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-4-3-7-7-7z"/><circle cx="12" cy="9" r="2.5" fill="#4DB6AC" stroke="none"/></svg>
+          </div>
+          <div class="logo-text">i<em>Font</em></div>
+        </div>
+        <div class="hdr-pill" id="hdr-pill">Cargando…</div>
+      </div>
+      <div class="search-wrap">
+        <input type="text" id="city-input" placeholder="Buscar ciudad, barrio…">
+        <button onclick="searchCity()">Ir</button>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab" id="tab-map-btn" onclick="switchPanel('map-mob')">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+        Mapa
+      </button>
+      <button class="tab active" id="tab-list-btn" onclick="switchPanel('list')">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        Lista
+      </button>
+      <button class="tab" id="tab-filter-btn" onclick="switchPanel('filter')">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        Filtros
+      </button>
+    </div>
+
+    <!-- Mobile map panel -->
+    <div class="panel" id="panel-map-mob" style="position:relative">
+      <div id="map-mobile" style="flex:1;min-height:0;z-index:1"></div>
+      <button class="locate-btn locate-btn-mob" onclick="recenter()">
+        <svg width="18" height="18" fill="none" stroke="#1251A3" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8" stroke-opacity=".3"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
+      </button>
+      <div class="map-bar-mob">
+        <span id="map-status-mob" style="color:var(--muted)">Cargando…</span>
+      </div>
+    </div>
+
+    <!-- List panel -->
+    <div class="panel active" id="panel-list">
+      <div class="list-scroll" id="list-scroll">
+        <div class="empty"><div class="empty-ico">🚰</div><div>Cargando fuentes…</div></div>
+      </div>
+    </div>
+
+    <!-- Filter panel -->
+    <div class="panel" id="panel-filter">
+      <div class="flt-scroll">
+        <div class="flt-card">
+          <div class="flt-title"><svg width="15" height="15" fill="none" stroke="#00897B" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Estado de la fuente</div>
+          <div class="flt-row"><span>🟢 Operativa</span><input type="checkbox" id="f-ok" checked></div>
+          <div class="flt-row"><span>🟡 Estado desconocido</span><input type="checkbox" id="f-unk" checked></div>
+          <div class="flt-row"><span>🔴 Fuera de servicio</span><input type="checkbox" id="f-brk"></div>
+        </div>
+        <div class="flt-card">
+          <div class="flt-title"><svg width="15" height="15" fill="none" stroke="#1565C0" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Radio de búsqueda</div>
+          <input type="range" id="radius-slider" min="200" max="3000" step="100" value="1000" oninput="updateRadiusLabel(this.value)">
+          <div class="radius-labels"><span>200 m</span><span class="radius-val" id="radius-display">1.000 m</span><span>3 km</span></div>
+        </div>
+        <button class="apply-btn" onclick="applyFilters()">Aplicar y buscar fuentes</button>
+      </div>
+    </div>
+
+    <!-- Detail panel (desktop sidebar) -->
+    <div class="panel" id="panel-detail">
+      <div class="detail-back" onclick="switchPanel('list')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        Volver a la lista
+      </div>
+      <div class="detail-scroll">
+        <div class="det-hero">
+          <div class="det-hero-name" id="det-name">—</div>
+          <div class="det-hero-coords" id="det-coords">—</div>
+          <div class="det-hero-badges" id="det-badges"></div>
+        </div>
+        <div class="det-card">
+          <div class="det-row"><span class="det-lbl">Distancia</span><span class="det-val" id="det-dist">—</span></div>
+          <div class="det-row"><span class="det-lbl">Fuente de datos</span><span class="det-val">OpenStreetMap</span></div>
+          <div class="det-row"><span class="det-lbl">Accesibilidad</span><span class="det-val" id="det-access">—</span></div>
+          <div class="det-row"><span class="det-lbl">Coste</span><span class="det-val" id="det-fee">Gratuita</span></div>
+          <div class="det-row" id="det-note-row" style="display:none"><span class="det-lbl">Nota</span><span class="det-val" id="det-note">—</span></div>
+        </div>
+        <div class="det-actions">
+          <button class="act-btn act-primary" onclick="openNav()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+            Cómo llegar
+          </button>
+          <button class="act-btn act-secondary" onclick="switchPanel('list')">← Lista</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAP (desktop, always visible on the right) -->
+  <div id="map-area">
+    <div id="map" style="flex:1;z-index:1"></div>
+    <button class="locate-btn" onclick="recenter()">
+      <svg width="18" height="18" fill="none" stroke="#1251A3" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8" stroke-opacity=".3"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>
+    </button>
+    <div class="map-bar">
+      <span class="map-status" id="map-status">Cargando fuentes…</span>
+    </div>
+  </div>
+
+  <!-- Mobile detail sheet -->
+  <div class="mob-overlay" id="mob-overlay" onclick="closeMobSheet(event)">
+    <div class="mob-sheet">
+      <div class="mob-handle"></div>
+      <div class="mob-sheet-hdr">
+        <div class="mob-sh-name" id="mob-sh-name">—</div>
+        <div class="mob-sh-coords" id="mob-sh-coords">—</div>
+        <div class="mob-sh-badges" id="mob-sh-badges"></div>
+      </div>
+      <div class="mob-sheet-body">
+        <div class="mob-det-row"><span class="mob-det-lbl">Distancia</span><span class="mob-det-val" id="mob-sh-dist">—</span></div>
+        <div class="mob-det-row"><span class="mob-det-lbl">Fuente de datos</span><span class="mob-det-val">OpenStreetMap</span></div>
+        <div class="mob-det-row"><span class="mob-det-lbl">Accesibilidad</span><span class="mob-det-val" id="mob-sh-access">—</span></div>
+        <div class="mob-det-row"><span class="mob-det-lbl">Coste</span><span class="mob-det-val" id="mob-sh-fee">—</span></div>
+      </div>
+      <div class="mob-sheet-actions">
+        <button class="act-btn act-primary" onclick="openNav()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+          Cómo llegar
+        </button>
+        <button class="act-btn act-secondary" onclick="closeMobSheet()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const isMobile = () => window.innerWidth < 768;
+let map, userMarker;
+let userLat = 41.3851, userLng = 2.1734;
+let fountains = [], markers = [], currentFountain = null;
+let filterRadius = 1000;
+let filterStatuses = { ok: true, unk: true, brk: false };
+
+window.addEventListener('load', () => {
+  initMap();
+  getLocation();
+  document.getElementById('city-input').addEventListener('keydown', e => { if (e.key === 'Enter') searchCity(); });
+});
+window.addEventListener('resize', () => { if (map) setTimeout(() => map.invalidateSize(), 150); });
+
+function initMap() {
+  const containerId = isMobile() ? 'map-mobile' : 'map';
+  map = L.map(containerId, { zoomControl: false, attributionControl: false });
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19, subdomains: 'abcd' }).addTo(map);
+  L.control.zoom({ position: 'bottomright' }).addTo(map);
+  map.setView([userLat, userLng], 15);
+}
+
+function getLocation() {
+  setLoading(true, 'Buscando tu ubicación…');
+  if (!navigator.geolocation) { fetchFountains(); return; }
+  navigator.geolocation.getCurrentPosition(
+    pos => { userLat = pos.coords.latitude; userLng = pos.coords.longitude; map.setView([userLat, userLng], 16); addUserMarker(); fetchFountains(); },
+    () => { addUserMarker(); fetchFountains(); },
+    { timeout: 8000, maximumAge: 60000 }
+  );
+}
+
+function addUserMarker() {
+  if (userMarker) map.removeLayer(userMarker);
+  userMarker = L.marker([userLat, userLng], {
+    icon: L.divIcon({ className:'', html:`<div style="width:16px;height:16px;background:#1565C0;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 5px rgba(21,101,192,0.18)"></div>`, iconSize:[16,16], iconAnchor:[8,8] }),
+    zIndexOffset: 1000
+  }).addTo(map);
+}
+
+async function fetchFountains() {
+  setLoading(true, 'Buscando fuentes cercanas…');
+  const q = `[out:json][timeout:30];node["amenity"="drinking_water"](around:${filterRadius},${userLat},${userLng});out body;`;
+  try {
+    const res = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(q)}`);
+    const data = await res.json();
+    fountains = data.elements.map(el => {
+      const t = el.tags || {};
+      let status = 'ok';
+      if (t.operational_status === 'broken' || t.access === 'no') status = 'brk';
+      return { id: el.id, lat: el.lat, lng: el.lon, dist: haversine(userLat, userLng, el.lat, el.lon), status, tags: t };
+    }).sort((a, b) => a.dist - b.dist);
+    renderMarkers();
+    renderList();
+    updatePill();
+    setLoading(false);
+  } catch(e) {
+    setLoading(false);
+    document.getElementById('map-status').textContent = 'Error al cargar. Comprueba la conexión.';
+  }
+}
+
+function renderMarkers() {
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+  const cols = { ok:'#00897B', unk:'#F57F17', brk:'#C62828' };
+  getFiltered().forEach(f => {
+    const c = cols[f.status];
+    const icon = L.divIcon({ className:'', iconSize:[28,28], iconAnchor:[14,26],
+      html:`<div style="width:28px;height:28px;background:${c};border-radius:50% 50% 50% 3px;border:2.5px solid #fff;display:flex;align-items:center;justify-content:center;transform:rotate(-45deg);box-shadow:0 2px 8px rgba(0,0,0,0.22)"><svg style="transform:rotate(45deg)" width="12" height="12" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a5 5 0 00-5 5c0 4 5 11 5 11s5-7 5-11a5 5 0 00-5-5zm0 7a2 2 0 110-4 2 2 0 010 4z"/></svg></div>`
+    });
+    const m = L.marker([f.lat, f.lng], { icon }).addTo(map);
+    m.bindPopup(`<div class="popup-name">${escHtml(getFountainName(f))}</div><div class="popup-dist">${formatDist(f.dist)}</div><button class="popup-btn" onclick="openDetail(${f.id})">Ver detalle</button>`, { maxWidth:200, closeButton:false });
+    markers.push(m);
+  });
+  const n = getFiltered().length;
+  const txt = `${n} fuente${n!==1?'s':''} · radio ${formatDist(filterRadius)}`;
+  document.getElementById('map-status').textContent = txt;
+  const mob = document.getElementById('map-status-mob');
+  if (mob) mob.textContent = txt;
+}
+
+function renderList() {
+  const scroll = document.getElementById('list-scroll');
+  const visible = getFiltered();
+  if (!visible.length) {
+    scroll.innerHTML = `<div class="empty"><div class="empty-ico">🔍</div><div>Sin fuentes en este radio.<br><br>Amplía el radio en <strong>Filtros</strong>.</div></div>`;
+    return;
+  }
+  const si = { ok:{cls:'b-ok',lbl:'✓ Operativa',ico:'ico-ok'}, unk:{cls:'b-unk',lbl:'? Desconocido',ico:'ico-unk'}, brk:{cls:'b-brk',lbl:'✗ Averiada',ico:'ico-brk'} };
+  scroll.innerHTML = `<div class="sec-label">${visible.length} fuente${visible.length!==1?'s':''} · por distancia</div>` +
+    visible.map(f => {
+      const s = si[f.status];
+      return `<div class="card" id="card-${f.id}" onclick="openDetail(${f.id})">
+        <div class="card-ico ${s.ico}">🚰</div>
+        <div class="card-body">
+          <div class="card-name">${escHtml(getFountainName(f))}</div>
+          <div class="card-sub">${f.lat.toFixed(4)}°N · ${f.lng.toFixed(4)}°E</div>
+          <div class="card-meta"><span class="dist">${formatDist(f.dist)}</span><span class="badge ${s.cls}">${s.lbl}</span></div>
+        </div>
+        <div class="card-arr">›</div>
+      </div>`;
+    }).join('');
+}
+
+function openDetail(id) {
+  const f = fountains.find(x => x.id === id);
+  if (!f) return;
+  currentFountain = f;
+  const t = f.tags, name = getFountainName(f);
+  const access = t.wheelchair === 'yes' ? '♿ Accesible' : t.wheelchair === 'no' ? 'No accesible' : 'No especificado';
+  const fee = t.fee === 'yes' ? 'De pago' : 'Gratuita';
+  const statusInfo = { ok:['✓ Operativa','#E0F2F1','#00695C'], unk:['? Desconocido','#FFF8E1','#E65100'], brk:['✗ Averiada','#FFEBEE','#C62828'] };
+  const [slbl,sbg,sclr] = statusInfo[f.status];
+  document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+  const card = document.getElementById(`card-${id}`);
+  if (card) card.classList.add('selected');
+  map.setView([f.lat, f.lng], 17);
+
+  if (isMobile()) {
+    document.getElementById('mob-sh-name').textContent = name;
+    document.getElementById('mob-sh-coords').textContent = `${f.lat.toFixed(5)}°N, ${f.lng.toFixed(5)}°E`;
+    document.getElementById('mob-sh-dist').textContent = formatDist(f.dist);
+    document.getElementById('mob-sh-access').textContent = access;
+    document.getElementById('mob-sh-fee').textContent = fee;
+    document.getElementById('mob-sh-badges').innerHTML = `<span class="mob-sh-badge" style="background:${sbg};color:${sclr}">${slbl}</span><span class="mob-sh-badge" style="background:#E3F2FD;color:#1251A3">💧 Agua potable</span>`;
+    document.getElementById('mob-overlay').classList.add('open');
+  } else {
+    document.getElementById('det-name').textContent = name;
+    document.getElementById('det-coords').textContent = `${f.lat.toFixed(5)}°N, ${f.lng.toFixed(5)}°E`;
+    document.getElementById('det-dist').textContent = formatDist(f.dist);
+    document.getElementById('det-access').textContent = access;
+    document.getElementById('det-fee').textContent = fee;
+    const note = t.description || t.note || null;
+    if (note) { document.getElementById('det-note').textContent = note; document.getElementById('det-note-row').style.display='flex'; }
+    else { document.getElementById('det-note-row').style.display='none'; }
+    document.getElementById('det-badges').innerHTML =
+      `<span class="det-hero-badge">${slbl}</span>
+       <span class="det-hero-badge">💧 Agua potable</span>
+       ${t.wheelchair==='yes'?'<span class="det-hero-badge">♿ Accesible</span>':''}`;
+    switchPanel('detail');
+  }
+}
+
+function closeMobSheet(e) {
+  if (!e || e.target === document.getElementById('mob-overlay'))
+    document.getElementById('mob-overlay').classList.remove('open');
+}
+
+function openNav() {
+  if (currentFountain) window.open(`https://www.google.com/maps/dir/?api=1&destination=${currentFountain.lat},${currentFountain.lng}`, '_blank');
+}
+
+function switchPanel(panel) {
+  ['map-mob','list','filter','detail'].forEach(p => {
+    const el = document.getElementById(`panel-${p}`);
+    if (el) el.classList.toggle('active', p === panel);
+    const btn = document.getElementById(`tab-${p}-btn`);
+    if (btn) btn.classList.toggle('active', p === panel);
+  });
+  if (panel === 'list' || panel === 'filter') {
+    document.getElementById('tab-list-btn').classList.toggle('active', panel === 'list');
+    document.getElementById('tab-filter-btn').classList.toggle('active', panel === 'filter');
+  }
+}
+
+function recenter() { map.setView([userLat, userLng], 16); }
+
+async function searchCity() {
+  const q = document.getElementById('city-input').value.trim();
+  if (!q) return;
+  setLoading(true, `Buscando "${q}"…`);
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&accept-language=es`);
+    const data = await res.json();
+    if (data.length) {
+      userLat = parseFloat(data[0].lat); userLng = parseFloat(data[0].lon);
+      map.setView([userLat, userLng], 15); addUserMarker();
+      await fetchFountains();
+      switchPanel('list');
+      document.getElementById('city-input').value = '';
+    } else { setLoading(false); alert('Ciudad no encontrada.'); }
+  } catch(e) { setLoading(false); alert('Error de conexión.'); }
+}
+
+function applyFilters() {
+  filterRadius = parseInt(document.getElementById('radius-slider').value);
+  filterStatuses.ok = document.getElementById('f-ok').checked;
+  filterStatuses.unk = document.getElementById('f-unk').checked;
+  filterStatuses.brk = document.getElementById('f-brk').checked;
+  fetchFountains(); switchPanel('list');
+}
+
+function getFiltered() { return fountains.filter(f => filterStatuses[f.status]); }
+function updatePill() { const n=getFiltered().length; document.getElementById('hdr-pill').textContent=`${n} fuente${n!==1?'s':''}`; }
+function updateRadiusLabel(v) { document.getElementById('radius-display').textContent=formatDist(parseInt(v)); }
+function setLoading(show,txt) { document.getElementById('loading').classList.toggle('hidden',!show); if(txt)document.getElementById('loading-txt').textContent=txt; }
+function haversine(a,b,c,d){const R=6371000,r=x=>x*Math.PI/180,s=Math.sin(r(c-a)/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(r(d-b)/2)**2;return R*2*Math.atan2(Math.sqrt(s),Math.sqrt(1-s))}
+function formatDist(m){return m>=1000?`${(m/1000).toFixed(1)} km`:`${Math.round(m)} m`}
+function getFountainName(f){const t=f.tags;return t?.name||t?.['name:es']||t?.['name:ca']||t?.description||'Fuente pública'}
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+</script>
+</body>
+</html>
