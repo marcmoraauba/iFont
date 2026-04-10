@@ -352,26 +352,18 @@ function getLocation() {
 function addUserMarker() {
   if (userMarker) map.removeLayer(userMarker);
 
-  const iconNormal = L.divIcon({
-    className:'',
-    html:`<div title="Arrastra para cambiar ubicación" style="width:18px;height:18px;background:#1565C0;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 5px rgba(21,101,192,0.2);cursor:grab"></div>`,
-    iconSize:[18,18], iconAnchor:[9,9]
-  });
-  const iconDrag = L.divIcon({
-    className:'',
-    html:`<div style="width:22px;height:22px;background:#1565C0;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 10px rgba(21,101,192,0.2);cursor:grabbing"></div>`,
-    iconSize:[22,22], iconAnchor:[11,11]
-  });
-
   userMarker = L.marker([userLat, userLng], {
-    icon: iconNormal,
+    icon: L.divIcon({
+      className:'',
+      html:`<div style="width:18px;height:18px;background:#1565C0;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 5px rgba(21,101,192,0.2);cursor:grab"></div>`,
+      iconSize:[18,18], iconAnchor:[9,9]
+    }),
     zIndexOffset: 1000,
     draggable: true,
     autoPan: false
   }).addTo(map);
 
   userMarker.on('dragstart', () => {
-    userMarker.setIcon(iconDrag);
     map.dragging.disable();
   });
 
@@ -379,7 +371,6 @@ function addUserMarker() {
     const pos = e.target.getLatLng();
     userLat = pos.lat;
     userLng = pos.lng;
-    userMarker.setIcon(iconNormal);
     map.dragging.enable();
     fetchFountains();
   });
